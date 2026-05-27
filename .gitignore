@@ -4,14 +4,15 @@ __pycache__/
 *$py.class
 
 # Data folders
-data/raw/*
+data/raw/csv/
 data/processed/*
-!data/raw/.gitkeep
+!data/raw/agmarknet_78_TN_*.csv
+!data/raw/weather_madurai_*.csv
 !data/processed/.gitkeep
 
 # Models
-models/*.pkl
-!models/.gitkeep
+# We must push the .pkl models so Streamlit Cloud can run them
+!models/*.pkl
 
 # Virtual environment
 venv/
