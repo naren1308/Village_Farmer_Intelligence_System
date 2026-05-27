@@ -9,16 +9,22 @@ import glob
 
 st.set_page_config(page_title="VFIS | Tamil Nadu", page_icon="🌾", layout="wide")
 
-# --- Custom CSS for Premium Look ---
+# --- Custom CSS for Premium Look (Adaptive Light/Dark) ---
 st.markdown("""
     <style>
-    .main {background-color: #f8f9fa;}
-    .stMetric {background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    .stMetric {padding: 15px; border-radius: 10px; border: 1px solid rgba(128, 128, 128, 0.2);}
     h1, h2, h3 {color: #2E7D32;}
     .alert-box {padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px;}
     .alert-warning {color: #856404; background-color: #fff3cd; border-color: #ffeeba;}
     .alert-danger {color: #721c24; background-color: #f8d7da; border-color: #f5c6cb;}
     .alert-success {color: #155724; background-color: #d4edda; border-color: #c3e6cb;}
+    
+    @media (prefers-color-scheme: dark) {
+        h1, h2, h3 {color: #81C784;}
+        .alert-warning {color: #ffda6a; background-color: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.3);}
+        .alert-danger {color: #ff8a8a; background-color: rgba(220, 53, 69, 0.2); border-color: rgba(220, 53, 69, 0.3);}
+        .alert-success {color: #75b798; background-color: rgba(25, 135, 84, 0.2); border-color: rgba(25, 135, 84, 0.3);}
+    }
     </style>
 """, unsafe_allow_html=True)
 
