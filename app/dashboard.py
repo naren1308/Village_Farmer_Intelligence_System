@@ -25,24 +25,31 @@ st.markdown("""
 st.title("🌾 Village Farmer Intelligence System (VFIS)")
 st.markdown("**Empowering Tamil Nadu Farmers with Data-Driven Decisions**")
 
+# Get the root directory (one level up from app/)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # --- Load Models ---
 @st.cache_resource
 def load_models(crop_name):
     xgb_model = None
     rf_model = None
-    if os.path.exists(f"models/xgboost_price_model_{crop_name}.pkl"):
-        with open(f"models/xgboost_price_model_{crop_name}.pkl", "rb") as f:
+    xgb_path = os.path.join(BASE_DIR, "models", f"xgboost_price_model_{crop_name}.pkl")
+    rf_path = os.path.join(BASE_DIR, "models", "rf_disease_model.pkl")
+    
+    if os.path.exists(xgb_path):
+        with open(xgb_path, "rb") as f:
             xgb_model = pickle.load(f)
-    if os.path.exists("models/rf_disease_model.pkl"):
-        with open("models/rf_disease_model.pkl", "rb") as f:
+    if os.path.exists(rf_path):
+        with open(rf_path, "rb") as f:
             rf_model = pickle.load(f)
     return xgb_model, rf_model
 
 # --- Live Data Processing ---
 @st.cache_data
 def get_live_data(crop_name):
-    weather_files = glob.glob("data/raw/weather_madurai_*.csv")
-    price_path = f"data/raw/agmarknet_78_TN_{crop_name}.csv"
+    weather_dir = os.path.join(BASE_DIR, "data", "raw")
+    weather_files = glob.glob(os.path.join(weather_dir, "weather_madurai_*.csv"))
+    price_path = os.path.join(BASE_DIR, "data", "raw", f"agmarknet_78_TN_{crop_name}.csv")
     
     if not weather_files or not os.path.exists(price_path):
         return None
