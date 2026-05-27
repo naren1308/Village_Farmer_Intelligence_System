@@ -10,6 +10,9 @@ langchain-openai
 langchain-google-genai
 llama-index
 openai-whisper
+audio-recorder-streamlit
+SpeechRecognition
+gTTS
 
 # Frontend
 streamlit

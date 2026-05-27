@@ -6,6 +6,11 @@ import plotly.graph_objects as go
 import pickle
 import os
 import glob
+from audio_recorder_streamlit import audio_recorder
+import speech_recognition as sr
+from gtts import gTTS
+import base64
+import io
 
 st.set_page_config(page_title="VFIS | Tamil Nadu", page_icon="🌾", layout="wide")
 
@@ -86,6 +91,23 @@ def get_live_data(crop_name):
     
     return df.dropna().reset_index(drop=True)
 
+# --- Voice Helper ---
+def speak_text(text, lang='ta'):
+    try:
+        tts = gTTS(text=text, lang=lang)
+        fp = io.BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+        b64 = base64.b64encode(fp.read()).decode()
+        md = f"""
+            <audio autoplay="true" style="display:none;">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+            """
+        st.markdown(md, unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Audio playback error: {e}")
+
 # --- Sidebar Inputs ---
 with st.sidebar:
     st.header("Farmer Settings")
@@ -94,26 +116,51 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 🎙️ Tamil Voice Assistant")
-    st.markdown("Speak your question in Tamil:")
-    if st.button("🎤 Start Listening"):
-        st.info("Listening... (In a real app, this connects to the mic)")
-        st.success("You asked: 'தக்காளி விலை எப்படி இருக்கும்?'")
-        st.markdown("**Assistant:** தக்காளி விலை அடுத்த 7 நாட்களில் கிலோவுக்கு 4 ரூபாய் அதிகரிக்க வாய்ப்புள்ளது.")
-        
+    st.markdown("Click the microphone below and speak your question in Tamil:")
+    
+    audio_bytes = audio_recorder("Click to record", icon_size="2x", icon_name="microphone")
+    final_query = None
+    
+    if audio_bytes:
+        st.info("Processing your voice...")
+        try:
+            r = sr.Recognizer()
+            audio_file = io.BytesIO(audio_bytes)
+            with sr.AudioFile(audio_file) as source:
+                audio = r.record(source)
+            text = r.recognize_google(audio, language="ta-IN")
+            st.success(f"You asked: '{text}'")
+            final_query = text
+        except sr.UnknownValueError:
+            st.error("Sorry, could not understand the audio.")
+        except Exception as e:
+            st.error(f"Error processing audio: {e}")
+            
     st.markdown("---")
     st.markdown("Or type your question (English or Tamil):")
-    user_query = st.text_input("e.g. Onion price? / தக்காளி விலை?", label_visibility="collapsed")
-    if user_query:
-        st.success(f"You asked: '{user_query}'")
-        q = user_query.lower()
+    text_query = st.text_input("e.g. Onion price? / தக்காளி விலை?", label_visibility="collapsed")
+    
+    if text_query:
+        final_query = text_query
+        
+    if final_query:
+        q = final_query.lower()
         if "நோய்" in q or "disease" in q or "pest" in q or "blight" in q:
-            st.markdown("**Assistant:** அதிக ஈரப்பதம் காரணமாக இலை கருகல் நோய் வர வாய்ப்புள்ளது. *(Due to high humidity, Leaf Blight is likely. Take precautions.)*")
+            ans_ta = "அதிக ஈரப்பதம் காரணமாக இலை கருகல் நோய் வர வாய்ப்புள்ளது."
+            st.markdown(f"**Assistant:** {ans_ta} *(Due to high humidity, Leaf Blight is likely. Take precautions.)*")
+            speak_text(ans_ta)
         elif "onion" in q or "வெங்காயம்" in q:
-            st.markdown("**Assistant:** வெங்காயம் விலை அடுத்த 7 நாட்களில் கிலோவுக்கு 2 ரூபாய் குறைய வாய்ப்புள்ளது. *(Onion prices are expected to drop by ₹2 per kg in the next 7 days. Sell early!)*")
+            ans_ta = "வெங்காயம் விலை அடுத்த 7 நாட்களில் கிலோவுக்கு 2 ரூபாய் குறைய வாய்ப்புள்ளது."
+            st.markdown(f"**Assistant:** {ans_ta} *(Onion prices are expected to drop by ₹2 per kg in the next 7 days. Sell early!)*")
+            speak_text(ans_ta)
         elif "groundnut" in q or "நிலக்கடலை" in q:
-            st.markdown("**Assistant:** நிலக்கடலை விலை நிலையாக இருக்கும். *(Groundnut prices are expected to remain stable.)*")
+            ans_ta = "நிலக்கடலை விலை நிலையாக இருக்கும்."
+            st.markdown(f"**Assistant:** {ans_ta} *(Groundnut prices are expected to remain stable.)*")
+            speak_text(ans_ta)
         else:
-            st.markdown("**Assistant:** தக்காளி விலை அடுத்த 7 நாட்களில் கிலோவுக்கு 4 ரூபாய் அதிகரிக்க வாய்ப்புள்ளது. *(Tomato prices are expected to rise by ₹4 per kg in the next 7 days.)*")
+            ans_ta = "தக்காளி விலை அடுத்த 7 நாட்களில் கிலோவுக்கு 4 ரூபாய் அதிகரிக்க வாய்ப்புள்ளது."
+            st.markdown(f"**Assistant:** {ans_ta} *(Tomato prices are expected to rise by ₹4 per kg in the next 7 days.)*")
+            speak_text(ans_ta)
 
 # Load specific crop model and data
 xgb_model, rf_model = load_models(crop)
