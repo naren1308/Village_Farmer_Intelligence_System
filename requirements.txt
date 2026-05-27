@@ -10,10 +10,6 @@ langchain-openai
 langchain-google-genai
 llama-index
 openai-whisper
-gTTS
-SpeechRecognition
-playsound==1.2.2
-PyAudio
 
 # Frontend
 streamlit
